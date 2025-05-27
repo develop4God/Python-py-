@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.Python/
+
+# Distribution / packaging
+.Python/
+dist/
+build/
+*.egg
+
+# Installer logs
+*.log
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# Editors and IDEs
+.vscode/
+.idea/
+
+# IPython Notebook
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+
+# Specific to Windows
+# .pydevproject
+# .project
+# .pybuilder/
+# .tox/
+
+# Database
+*.sqlite3
+
+# Thumbnails
+.thumbnails/
+
+# OS generated files
+.DS_Store
+Thumbs.db
