@@ -1,8 +1,6 @@
 Generador de Devocionales Bíblicos
 🌐 Selecciona tu Idioma / Select your Language
-Español (ES)
-
-English (EN)
+Español (ES) English (EN)
 
 Español (ES)
 Este proyecto consta de dos componentes principales: un servidor FastAPI (API_Server.py) que utiliza el modelo Google Gemini para generar devocionales bíblicos y un cliente Python (API_Client.py) que interactúa con este servidor para automatizar la generación de un conjunto de devocionales.
