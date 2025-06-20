@@ -1,152 +1,82 @@
-Generador de Devocionales Bíblicos
+Programas de Utilidad de Devocionales
 🌐 Selecciona tu Idioma / Select your Language
-Español (ES) English (EN)
+Español (ES)
+
+English (EN)
 
 Español (ES)
-Este proyecto consta de dos componentes principales: un servidor FastAPI (API_Server.py) que utiliza el modelo Google Gemini para generar devocionales bíblicos y un cliente Python (API_Client.py) que interactúa con este servidor para automatizar la generación de un conjunto de devocionales.
-
-🚀 Características
-Generación de Devocionales: Utiliza el modelo gemini-2.0-flash-lite para crear devocionales personalizados.
-
-Soporte Multi-versión y Multi-idioma: Genera devocionales en español (RVR1960) y, potencialmente, otras versiones e idiomas (inglés: KJV).
-
-Gestión de Versículos Excluidos: Mantiene un registro de versículos ya utilizados para evitar repeticiones.
-
-Reintentos Automáticos: El servidor implementa lógica de reintento para las llamadas a la API de Gemini.
-
-Generación Iterativa: El cliente permite generar devocionales día a día, gestionando errores individuales y acumulando resultados exitosos.
-
-Salida Estructurada: Los devocionales generados se guardan en un archivo JSON estructurado y anidado por idioma y fecha.
-
-🏗️ Arquitectura del Sistema
-El sistema se compone de un servidor API y un cliente, interactuando de la siguiente manera:
-
-Diagrama Conceptual de la Arquitectura
-graph TD
-    A[API_Client.py] -->|Solicitud HTTP POST| B(API_Server.py)
-    B -->|Llamada a Gemini API| C(Google Gemini LLM)
-    C -->|Respuesta de Contenido| B
-    B -->|Respuesta JSON| A
-    A -->|Guarda JSON| D[output_devocionales/]
-    B -->|Actualiza/Guarda JSON| E[excluded_verses.json]
-
-Descripción del Flujo:
-
-El API_Client.py inicia una solicitud HTTP POST al API_Server.py para generar devocionales.
-
-El API_Server.py selecciona un versículo (evitando los excluidos) y formula un prompt para el modelo Gemini.
-
-El API_Server.py envía la solicitud al modelo gemini-2.0-flash-lite (Google Gemini LLM).
-
-El modelo Gemini procesa el prompt y devuelve el contenido del devocional.
-
-El API_Server.py valida y procesa la respuesta, añadiendo el versículo utilizado a la lista de excluidos y guardando esta lista en excluded_verses.json.
-
-El API_Server.py envía una respuesta JSON estructurada de vuelta al API_Client.py.
-
-El API_Client.py acumula los devocionales generados con éxito y los guarda en un archivo JSON dentro del directorio output_devocionales/.
+Este proyecto incluye un conjunto de programas de utilidad diseñados para manipular, consolidar y procesar archivos JSON que contienen datos de devocionales bíblicos. Son herramientas complementarias a los programas principales de generación de devocionales.
 
 🛠️ Especificaciones Técnicas
-1. API_Server.py (Servidor FastAPI)
-Framework: FastAPI
+1. Ajuste de json para cumplir con formato providers.py
+Propósito: Este script ajusta la estructura de un archivo JSON de devocionales existente para que sea compatible con un formato que puede soportar múltiples versiones de devocionales por fecha, anidando por idioma. Es útil para preparar datos antiguos o generados con un formato diferente para sistemas que esperan una estructura más anidada y detallada.
 
-Modelo LLM: Google Gemini (gemini-2.0-flash-lite)
+Librerías Clave: json, datetime, re (expresiones regulares).
 
-Manejo de Errores:
+Funcionalidad Clave:
 
-HTTPException para errores de API.
+adjust_json_for_multi_version(input_filepath, output_filepath): Función principal que lee un archivo JSON de entrada, itera sobre los devocionales, asegura que cada uno tenga un campo "version" (intentando extraerlo del versículo si es necesario, o asignando 'RVR1960' por defecto), y los agrupa por fecha.
 
-Decorador @retry (de tenacity) para reintentar llamadas a Gemini en caso de fallos.
+Formato de Entrada Esperado: Una lista de objetos devocionales (ej. [{...}, {...}]).
 
-Gestión de errores de decodificación JSON.
-
-Configuración:
-
-Carga la clave API de Gemini desde una variable de entorno (GOOGLE_API_KEY).
-
-GenerationConfig global para Gemini (temperatura, top_p, top_k, max_output_tokens).
-
-SafetySettings configurados para BLOCK_NONE en todas las categorías de daño.
-
-Modelos de Datos (Pydantic):
-
-ParaMeditarItem: Para citas y textos de meditación.
-
-DevotionalContent: Estructura para cada devocional generado.
-
-GenerateRequest: Define la estructura de la solicitud de generación.
-
-LanguageData: Anida los devocionales por idioma y fecha.
-
-ApiResponse: Estructura de la respuesta general de la API.
-
-Funcionalidades Clave:
-
-load_excluded_verses() y save_excluded_verses(): Para persistir los versículos ya utilizados.
-
-create_error_devocional(): Genera una respuesta de error estandarizada.
-
-obtener_todos_los_versiculos_posibles(): Punto de Adaptación – Donde se deben cargar los versículos bíblicos disponibles. Actualmente, es un set fijo de versículos del Nuevo Testamento.
-
-get_abbreviated_verse_citation(): Convierte el nombre completo del libro a su abreviatura (ej., "Juan" -> "Jn").
-
-extract_verse_from_content(): Extrae y normaliza el versículo de la respuesta de Gemini.
-
-seleccionar_versiculo_para_generacion(): Selecciona un versículo principal, priorizando una pista (main_verse_hint) si es válida y no está excluida, o uno aleatorio si no.
-
-generate_devocional_content_gemini(): Envía el prompt a Gemini y procesa la respuesta.
-
-2. API_Client.py (Cliente Python)
-Comunicación: Utiliza la librería requests para hacer solicitudes HTTP al servidor.
-
-Parámetros de Generación:
-
-API_URL: URL del endpoint del servidor FastAPI.
-
-OUTPUT_BASE_DIR: Directorio donde se guardarán los archivos JSON de salida.
-
-GENERATION_QUANTITY: Número de devocionales a generar.
-
-START_DATE: Fecha de inicio para la generación.
-
-GENERATION_TOPIC, GENERATION_MAIN_VERSE_HINT: Parámetros opcionales para guiar la generación.
-
-LANGUAGES_TO_GENERATE, VERSIONS_ES_TO_GENERATE, VERSIONS_EN_TO_GENERATE: Listas de idiomas y versiones a generar.
-
-Funcionalidad Principal:
-
-generate_devotionals_iteratively():
-
-Itera día a día, enviando una solicitud individual por cada fecha.
-
-Maneja try-except para capturar errores de red, timeout, JSON y otros errores inesperados por cada solicitud.
-
-Acumula los devocionales generados con éxito en una lista.
-
-Pausa de 1 segundo entre solicitudes para evitar saturar la API.
-
-Guarda todos los devocionales exitosos en un único archivo JSON al finalizar, con una estructura anidada por idioma y fecha.
-
-Formato de Salida: El archivo JSON final tiene la estructura:
+Formato de Salida Generado:
 
 {
     "data": {
         "es": {
             "YYYY-MM-DD": [
-                { /* Devocional 1 */ },
-                { /* Devocional 2 (si aplica para otra versión del mismo día) */ }
-            ],
-            "YYYY-MM-DD": [
-                { /* Devocional para el siguiente día */ }
-            ]
-        },
-        "en": {
-            "YYYY-MM-DD": [
-                { /* Devocional en inglés */ }
+                { /* devocional RVR1960 */ },
+                { /* devocional NTV */ }
             ]
         }
     }
 }
+
+Manejo de Errores: Incluye bloques try-except para FileNotFoundError, json.JSONDecodeError y otros errores generales durante el procesamiento de archivos.
+
+2. --conslidador archivos Json. V2.0.py (Consolidador de Archivos JSON)
+Propósito: Este script proporciona una interfaz gráfica de usuario (GUI) simple (usando Tkinter) que permite al usuario seleccionar múltiples archivos JSON de devocionales. Luego, los consolida en un único archivo JSON, eliminando devocionales duplicados basados en el versículo normalizado, y generando una lista de todos los versículos únicos utilizados.
+
+Librerías Clave: json, os, re, datetime, tkinter (para la GUI), collections.Counter.
+
+Funcionalidad Clave:
+
+get_next_versioned_filename(): Determina el siguiente nombre de archivo versionado incluyendo la fecha y hora de ejecución para evitar sobrescribir archivos existentes.
+
+normalize_verse_reference(verse_str): Normaliza una cadena de referencia de versículo para usarla como clave única, extrayendo la referencia bíblica sin el texto de la cita ni la versión (ej. "Filipenses 2:3-4" de "Filipenses 2:3-4 RVR1960: "Nada hagáis..."").
+
+repair_json_string(json_str): Intenta reparar problemas comunes de formato en un string JSON para permitir su carga, como comas finales o falta de un array contenedor.
+
+consolidate_devotionals(file_paths, output_dir): Función central que itera sobre los archivos seleccionados, los lee (intentando reparar JSONs inválidos), extrae devocionales, los agrupa por fecha y versículo normalizado para evitar duplicados, y guarda el resultado consolidado y una lista de versículos utilizados.
+
+select_files_and_merge(): Configura la GUI (Tkinter) para la selección de archivos de entrada y la carpeta de salida, y luego llama a consolidate_devotionals.
+
+Interfaz Gráfica (GUI): Utiliza tkinter para una interfaz de usuario básica que permite la selección interactiva de archivos y directorios mediante cuadros de diálogo. Muestra mensajes de estado y un resumen final.
+
+Output: Genera un archivo JSON consolidado y un archivo .txt con la lista de versículos utilizados, ambos con nombres versionados que incluyen un timestamp.
+
+3. --Excludes verses cargando archivo.py (Extractor de Versículos Excluidos)
+Propósito: Este script, con su propia interfaz gráfica (GUI) de Tkinter, permite al usuario seleccionar archivos JSON de devocionales. Su función principal es extraer todas las referencias de versículos encontradas en el campo "versiculo" de los devocionales. Luego, genera un archivo excluded_verses.json que contiene una lista ordenada de estos versículos, útil para mantener un registro de versículos ya empleados en la generación o para identificar patrones. También detecta y reporta cualquier versículo duplicado en la lista extraída.
+
+Librerías Clave: tkinter (para la GUI), filedialog, messagebox, scrolledtext, json, re, os, ttk, collections.Counter.
+
+Funcionalidad Clave:
+
+VerseExtractorApp: Clase principal que encapsula la GUI y la lógica de la aplicación.
+
+select_files(): Permite seleccionar múltiples archivos JSON de entrada.
+
+select_output_directory(): Permite seleccionar la carpeta donde se guardará el archivo excluded_verses.json.
+
+process_files(): Inicia el proceso de extracción, actualiza una barra de progreso y el área de log en la GUI.
+
+_find_verses_in_json(data): Función recursiva clave que busca específicamente el campo "versiculo" dentro de la estructura JSON. Utiliza una expresión regular (re.compile) para extraer solo la referencia bíblica limpia (ej., "Juan 3:16", "Hebreos 5:8-9") del contenido del campo.
+
+Output: Genera un archivo excluded_verses.json con una lista de versículos extraídos. La lista final puede contener duplicados, los cuales son identificados y reportados en el log.
+
+Interfaz Gráfica (GUI): Proporciona botones para la selección de archivos y directorio, una barra de progreso visual, y un área de texto desplazable para mostrar el log detallado del procesamiento.
+
+Validación y Reporte: Incluye validación de archivos JSON y reporta errores. Utiliza collections.Counter para detectar y notificar al usuario sobre versículos duplicados encontrados en los archivos de entrada.
 
 ⚙️ Configuración y Ejecución
 Requisitos Previos
@@ -154,255 +84,116 @@ Python 3.9+
 
 pip (gestor de paquetes de Python)
 
-1. Instalación de Dependencias
+Instalación de Dependencias
 Navega a la raíz del proyecto y ejecuta:
 
 pip install -r requirements.txt
 
 (Si no tienes un requirements.txt, puedes crearlo con las siguientes librerías):
 
-fastapi
-uvicorn
-python-dotenv
-google-generativeai
-pydantic
-requests
-tenacity
+tkinter # Para la interfaz gráfica, a menudo ya incluida con Python
+json
+os
+re
+datetime
+collections
 
-2. Configuración de la Clave API de Gemini
-Crea un archivo .env en la raíz del proyecto (al mismo nivel que API_Server.py y API_Client.py) con tu clave API de Google Gemini:
+Nota: tkinter usualmente viene preinstalado con Python, pero si tienes problemas, puede que necesites instalarlo por separado dependiendo de tu sistema operativo (ej., sudo apt-get install python3-tk en Debian/Ubuntu).
 
-GOOGLE_API_KEY="TU_CLAVE_API_DE_GEMINI_AQUI"
+Ejecución de los Programas de Utilidad
+Para ejecutar cualquiera de estos programas de utilidad, simplemente navega a la raíz del proyecto en tu terminal y ejecuta el script Python deseado:
 
-3. Ejecución del Servidor
-El servidor se ejecuta usando uvicorn. Abre tu terminal, navega a la raíz del proyecto y ejecuta:
+Para Ajuste de json para cumplir con formato providers.py:
 
-uvicorn API_Server:app --host 0.0.0.0 --port 50000 --reload
+python "Ajuste de json para cumplir con formato providers.py"
 
-API_Server:app: Indica a uvicorn que encuentre la aplicación app dentro del archivo API_Server.py.
+Nota: Este script tiene rutas de archivo de entrada y salida definidas directamente en su sección if __name__ == "__main__":. Deberás editarlas en el código antes de ejecutarlo para que apunten a tus archivos.
 
---host 0.0.0.0: Permite que el servidor sea accesible desde cualquier IP (útil para pruebas en red local).
+Para --conslidador archivos Json. V2.0.py:
 
---port 50000: Especifica el puerto donde se ejecutará la API.
+python "--conslidador archivos Json. V2.0.py"
 
---reload: Recarga el servidor automáticamente al detectar cambios en el código (útil para desarrollo).
+Se abrirá una ventana GUI que te guiará para seleccionar los archivos JSON a consolidar y la carpeta de salida.
 
-El servidor estará disponible en http://127.0.0.1:50000 (o http://localhost:50000). Puedes acceder a la documentación interactiva de la API en http://127.0.0.1:50000/docs.
+Para --Excludes verses cargando archivo.py:
 
-4. Ejecución del Cliente
-Una vez que el servidor esté en funcionamiento, abre otra terminal (no cierres la del servidor), navega a la raíz del proyecto y ejecuta el cliente:
+python "--Excludes verses cargando archivo.2.0.py"
 
-python API_Client.py
-
-El cliente comenzará a realizar solicitudes al servidor, y verás el progreso en ambas terminales. Los devocionales generados se guardarán en el directorio output_devocionales/.
-
-🔄 Flujo de Trabajo
-Diagrama de Flujo del Cliente (API_Client.py)
-graph TD
-    A[Inicio Cliente] --> B{Configurar Parámetros (cantidad, fecha, etc.)}
-    B --> C[Inicializar Contadores y Lista de Devocionales Exitosos]
-    C --> D{Bucle: Para cada día a generar}
-    D --> E[Calcular Fecha Actual]
-    E --> F[Construir Payload de Solicitud (para 1 día)]
-    F --> G{Intentar Llamada a API_Server}
-    G -- Éxito --> H[Decodificar Respuesta JSON]
-    H --> I{Validar Devocional y NO es Error}
-    I -- Sí --> J[Añadir Devocional a Lista de Exitosos]
-    I -- No --> K[Incrementar Contador de Errores]
-    G -- Error (Timeout, Red, JSON, etc.) --> K
-    K --> L[Imprimir Mensaje de Error/Advertencia]
-    J --> M[Imprimir Mensaje de Éxito]
-    L --> N{Pausa de 1 segundo}
-    M --> N
-    N --> D
-    D -- Fin Bucle --> O{Hay Devocionales Exitosos?}
-    O -- Sí --> P[Reconstruir Estructura Anidada por Fecha/Idioma]
-    P --> Q[Generar Nombre de Archivo y Ruta]
-    Q --> R[Guardar JSON en output_devocionales/]
-    O -- No --> S[Imprimir Advertencia: No se generó nada]
-    R --> T[Fin Cliente]
-    S --> T
-
-Diagrama de Flujo del Servidor (API_Server.py)
-graph TD
-    A[Inicio Servidor] --> B[Cargar Versículos Excluidos]
-    B --> C[Endpoint /generate_devotionals (POST)]
-    C --> D{Bucle: Desde start_date hasta end_date}
-    D --> E[Seleccionar main_verse (con hint/aleatorio, excluyendo usados)]
-    E --> F{Intentar Generar master_version con Gemini}
-    F -- Éxito --> G[Añadir main_verse a Excluidos]
-    G --> H[Añadir master_devocional a response_data]
-    H --> I{Bucle: Para otras_versions}
-    I --> J{Intentar Generar other_version con Gemini (mismo main_verse)}
-    J -- Éxito --> K[Añadir other_version_devocional a response_data]
-    J -- Error --> L[Añadir Devocional de Error para other_version]
-    K --> I
-    L --> I
-    I -- Fin Bucle --> D
-    F -- Error (ValueError, HTTPException, etc.) --> M[Crear Error Devocional para master_version]
-    M --> N[Crear Error Devocional para otras_versions]
-    N --> D
-    D -- Fin Bucle --> O[Guardar Versículos Excluidos]
-    O --> P[Retornar ApiResponse (status, message, data)]
-
-📝 Notas y Consideraciones
-API Key: Asegúrate de que tu GOOGLE_API_KEY sea confidencial y no se suba a repositorios públicos.
-
-Versículos Posibles: La función obtener_todos_los_versiculos_posibles() en API_Server.py contiene una lista fija de versículos del Nuevo Testamento. Para un uso más robusto, esta función debería cargar los versículos desde una fuente externa (ej., una base de datos, un archivo más grande, etc.).
-
-Modelo Gemini: Actualmente utiliza gemini-2.0-flash-lite. Si deseas usar otro modelo, puedes modificar la línea model = genai.GenerativeModel('gemini-2.0-flash-lite', ...) en API_Server.py.
-
-Personalización del Prompt: Puedes ajustar el prompt en generate_devocional_content_gemini() para refinar la calidad y el estilo de los devocionales generados.
-
-Manejo de Errores: Aunque se implementan reintentos y devocionales de error, siempre es buena práctica monitorear los logs para identificar patrones de fallos recurrentes.
-
-Escalabilidad: Para grandes volúmenes de generación o despliegues en producción, considera añadir colas de mensajes (ej., RabbitMQ, Celery) para procesar las solicitudes de forma asíncrona y robusta.
+Se abrirá una ventana GUI que te guiará para seleccionar los archivos JSON de entrada y la carpeta donde se guardará el excluded_verses.json.
 
 English (EN)
-This project consists of two main components: a FastAPI server (API_Server.py) that uses the Google Gemini model to generate biblical devotionals, and a Python client (API_Client.py) that interacts with this server to automate the generation of a set of devotionals.
-
-🚀 Features
-Devotional Generation: Uses the gemini-2.0-flash-lite model to create personalized devotionals.
-
-Multi-version and Multi-language Support: Generates devotionals in Spanish (RVR1960) and, potentially, other versions and languages (English: KJV).
-
-Excluded Verse Management: Keeps a record of already used verses to avoid repetition.
-
-Automatic Retries: The server implements retry logic for Gemini API calls.
-
-Iterative Generation: The client allows generating devotionals day by day, handling individual errors and accumulating successful results.
-
-Structured Output: Generated devotionals are saved in a structured JSON file nested by language and date.
-
-🏗️ System Architecture
-The system consists of an API server and a client, interacting as follows:
-
-Conceptual Architecture Diagram
-graph TD
-    A[API_Client.py] -->|HTTP POST Request| B(API_Server.py)
-    B -->|Gemini API Call| C(Google Gemini LLM)
-    C -->|Content Response| B
-    B -->|JSON Response| A
-    A -->|Saves JSON| D[output_devocionales/]
-    B -->|Updates/Saves JSON| E[excluded_verses.json]
-
-Flow Description:
-
-API_Client.py initiates an HTTP POST request to API_Server.py to generate devotionals.
-
-API_Server.py selects a verse (avoiding excluded ones) and formulates a prompt for the Gemini model.
-
-API_Server.py sends the request to the gemini-2.0-flash-lite model (Google Gemini LLM).
-
-The Gemini model processes the prompt and returns the devotional content.
-
-API_Server.py validates and processes the response, adding the used verse to the excluded list and saving this list to excluded_verses.json.
-
-API_Server.py sends a structured JSON response back to API_Client.py.
-
-API_Client.py accumulates successfully generated devotionals and saves them to a JSON file within the output_devocionales/ directory.
+This project includes a set of utility programs designed to manipulate, consolidate, and process JSON files containing biblical devotional data. These are supplementary tools to the main devotional generation programs.
 
 🛠️ Technical Specifications
-1. API_Server.py (FastAPI Server)
-Framework: FastAPI
+1. Ajuste de json para cumplir con formato providers.py (Adjust JSON to Provider Format)
+Purpose: This script adjusts the structure of an existing devotional JSON file to be compatible with a format that can support multiple devotional versions per date, nested by language. It is useful for preparing old data or data generated with a different format for systems expecting a more nested and detailed structure.
 
-LLM Model: Google Gemini (gemini-2.0-flash-lite)
+Key Libraries: json, datetime, re (regular expressions).
 
-Error Handling:
+Key Functionality:
 
-HTTPException for API errors.
+adjust_json_for_multi_version(input_filepath, output_filepath): Main function that reads an input JSON file, iterates over the devotionals, ensures each has a "version" field (attempting to extract it from the verse if necessary, or assigning 'RVR1960' by default), and groups them by date.
 
-@retry decorator (from tenacity) to retry Gemini calls in case of failures.
+Expected Input Format: A list of devotional objects (e.g., [{...}, {...}]).
 
-JSON decoding error handling.
-
-Configuration:
-
-Loads Gemini API key from an environment variable (GOOGLE_API_KEY).
-
-Global GenerationConfig for Gemini (temperature, top_p, top_k, max_output_tokens).
-
-SafetySettings configured to BLOCK_NONE for all harm categories.
-
-Data Models (Pydantic):
-
-ParaMeditarItem: For meditation quotes and texts.
-
-DevotionalContent: Structure for each generated devotional.
-
-GenerateRequest: Defines the structure of the generation request.
-
-LanguageData: Nests devotionals by language and date.
-
-ApiResponse: Structure of the general API response.
-
-Key Functions:
-
-load_excluded_verses() and save_excluded_verses(): To persist already used verses.
-
-create_error_devocional(): Generates a standardized error response.
-
-obtener_todos_los_versiculos_posibles(): Adaptation Point – Where available biblical verses should be loaded. Currently, it is a fixed set of New Testament verses.
-
-get_abbreviated_verse_citation(): Converts the full book name to its abbreviation (e.g., "Juan" -> "Jn").
-
-extract_verse_from_content(): Extracts and normalizes the verse from Gemini's response.
-
-seleccionar_versiculo_para_generacion(): Selects a main verse, prioritizing a hint (main_verse_hint) if valid and not excluded, or a random one otherwise.
-
-generate_devocional_content_gemini(): Sends the prompt to Gemini and processes the response.
-
-2. API_Client.py (Python Client)
-Communication: Uses the requests library to make HTTP requests to the server.
-
-Generation Parameters:
-
-API_URL: URL of the FastAPI server endpoint.
-
-OUTPUT_BASE_DIR: Directory where output JSON files will be saved.
-
-GENERATION_QUANTITY: Number of devotionals to generate.
-
-START_DATE: Start date for generation.
-
-GENERATION_TOPIC, GENERATION_MAIN_VERSE_HINT: Optional parameters to guide generation.
-
-LANGUAGES_TO_GENERATE, VERSIONS_ES_TO_GENERATE, VERSIONS_EN_TO_GENERATE: Lists of languages and versions to generate.
-
-Main Functionality:
-
-generate_devotionals_iteratively():
-
-Iterates day by day, sending an individual request for each date.
-
-Handles try-except to catch network, timeout, JSON, and other unexpected errors for each request.
-
-Accumulates successfully generated devotionals in a list.
-
-1-second pause between requests to avoid API saturation.
-
-Saves all successful devotionals to a single JSON file upon completion, with a nested structure by language and date.
-
-Output Format: The final JSON file has the structure:
+Generated Output Format:
 
 {
     "data": {
         "es": {
             "YYYY-MM-DD": [
-                { /* Devotional 1 */ },
-                { /* Devotional 2 (if applicable for another version on the same day) */ }
-            ],
-            "YYYY-MM-DD": [
-                { /* Devotional for the next day */ }
-            ]
-        },
-        "en": {
-            "YYYY-MM-DD": [
-                { /* English Devotional */ }
+                { /* RVR1960 devotional */ },
+                { /* NTV devotional */ }
             ]
         }
     }
 }
+
+Error Handling: Includes try-except blocks for FileNotFoundError, json.JSONDecodeError, and other general errors during file processing.
+
+2. --conslidador archivos Json. V2.0.py (JSON Files Consolidator V2.0)
+Purpose: This script provides a simple graphical user interface (GUI) (using Tkinter) that allows the user to select multiple JSON devotional files. It then consolidates them into a single JSON file, removing duplicate devotionals based on the normalized verse, and generating a list of all unique verses used.
+
+Key Libraries: json, os, re, datetime, tkinter (for GUI), collections.Counter.
+
+Key Functionality:
+
+get_next_versioned_filename(): Determines the next versioned filename including the execution date and time to prevent overwriting existing files.
+
+normalize_verse_reference(verse_str): Normalizes a verse reference string to use as a unique key, extracting the biblical reference without the citation text or version (e.g., "Filipenses 2:3-4" from "Filipenses 2:3-4 RVR1960: "Do nothing..."").
+
+repair_json_string(json_str): Attempts to repair common formatting issues in a JSON string to allow it to be loaded, such as trailing commas or missing enclosing arrays.
+
+consolidate_devotionals(file_paths, output_dir): Core function that iterates over selected files, reads them (attempting to repair invalid JSONs), extracts devotionals, groups them by date and normalized verse to avoid duplicates, and saves the consolidated result and a list of used verses.
+
+select_files_and_merge(): Configures the Tkinter GUI for selecting input files and the output folder, then calls consolidate_devotionals.
+
+Graphical User Interface (GUI): Uses tkinter for a basic user interface that allows interactive selection of files and directories via dialog boxes. Displays status messages and a final summary.
+
+Output: Generates a consolidated JSON file and a .txt file with the list of used verses, both with versioned names that include a timestamp.
+
+3. --Excludes verses cargando archivo.py (Verse Excluder Loader)
+Purpose: This script, with its own Tkinter GUI, allows the user to select devotional JSON files. Its main function is to extract all verse references found in the "versiculo" field of the devotionals. It then generates an excluded_verses.json file containing a sorted list of these verses, useful for keeping a record of verses already used in generation or for identifying patterns. It also detects and reports any duplicate verses in the extracted list.
+
+Key Libraries: tkinter (for GUI), filedialog, messagebox, scrolledtext, json, re, os, ttk, collections.Counter.
+
+Key Functionality:
+
+VerseExtractorApp: Main class encapsulating the GUI and application logic.
+
+select_files(): Allows selecting multiple input JSON files.
+
+select_output_directory(): Allows selecting the folder where the excluded_verses.json file will be saved.
+
+process_files(): Initiates the extraction process, updates a progress bar and the log area in the GUI.
+
+_find_verses_in_json(data): Key recursive function that specifically searches for the "versiculo" field within the JSON structure. It uses a regular expression (re.compile) to extract only the clean biblical reference (e.g., "Juan 3:16", "Hebreos 5:8-9") from the field's content.
+
+Output: Generates an excluded_verses.json file with a list of extracted verses. The final list may contain duplicates, which are identified and reported in the log.
+
+Graphical User Interface (GUI): Provides buttons for file and directory selection, a visual progress bar, and a scrollable text area to display detailed processing logs.
+
+Validation and Reporting: Includes JSON file validation and error reporting. Uses collections.Counter to detect and notify the user about duplicate verses found in the input files.
 
 ⚙️ Setup and Execution
 Prerequisites
@@ -410,106 +201,39 @@ Python 3.9+
 
 pip (Python package installer)
 
-1. Install Dependencies
+Install Dependencies
 Navigate to the project root and run:
 
 pip install -r requirements.txt
 
 (If you don't have a requirements.txt, you can create it with the following libraries):
 
-fastapi
-uvicorn
-python-dotenv
-google-generativeai
-pydantic
-requests
-tenacity
+tkinter # For the graphical interface, often already included with Python
+json
+os
+re
+datetime
+collections
 
-2. Configure Gemini API Key
-Create a .env file in the project root (at the same level as API_Server.py and API_Client.py) with your Google Gemini API key:
+Note: tkinter is usually pre-installed with Python, but if you have issues, you might need to install it separately depending on your operating system (e.g., sudo apt-get install python3-tk on Debian/Ubuntu).
 
-GOOGLE_API_KEY="YOUR_GEMINI_API_KEY_HERE"
+Running the Utility Programs
+To run any of these utility programs, simply navigate to the project root in your terminal and execute the desired Python script:
 
-3. Run the Server
-The server runs using uvicorn. Open your terminal, navigate to the project root, and run:
+For Ajuste de json para cumplir con formato providers.py:
 
-uvicorn API_Server:app --host 0.0.0.0 --port 50000 --reload
+python "Ajuste de json para cumplir con formato providers.py"
 
-API_Server:app: Tells uvicorn to find the app application within the API_Server.py file.
+Note: This script has input and output file paths defined directly in its if __name__ == "__main__": section. You will need to edit them in the code before running to point to your files.
 
---host 0.0.0.0: Allows the server to be accessible from any IP (useful for local network testing).
+For --conslidador archivos Json. V2.0.py:
 
---port 50000: Specifies the port where the API will run.
+python "--conslidador archivos Json. V2.0.py"
 
---reload: Automatically reloads the server when code changes are detected (useful for development).
+A GUI window will open, guiding you to select the JSON files to consolidate and the output folder.
 
-The server will be available at http://127.0.0.1:50000 (or http://localhost:50000). You can access the interactive API documentation at http://127.0.0.1:50000/docs.
+For --Excludes verses cargando archivo.py:
 
-4. Run the Client
-Once the server is running, open another terminal (do not close the server's terminal), navigate to the project root, and run the client:
+python "--Excludes verses cargando archivo.py"
 
-python API_Client.py
-
-The client will start making requests to the server, and you will see the progress in both terminals. Generated devotionals will be saved in the output_devocionales/ directory.
-
-🔄 Workflow
-Client Flow Diagram (API_Client.py)
-graph TD
-    A[Client Start] --> B{Configure Parameters (quantity, date, etc.)}
-    B --> C[Initialize Counters and List of Successful Devotionals]
-    C --> D{Loop: For each day to generate}
-    D --> E[Calculate Current Date]
-    E --> F[Build Request Payload (for 1 day)]
-    F --> G{Attempt API_Server Call}
-    G -- Success --> H[Decode JSON Response]
-    H --> I{Validate Devotional and NOT Error}
-    I -- Yes --> J[Add Devotional to Successful List]
-    I -- No --> K[Increment Error Counter]
-    G -- Error (Timeout, Network, JSON, etc.) --> K
-    K --> L[Print Error/Warning Message]
-    J --> M[Print Success Message]
-    L --> N{1-second Pause}
-    M --> N
-    N --> D
-    D -- End Loop --> O{Are there Successful Devotionals?}
-    O -- Yes --> P[Reconstruct Nested Structure by Date/Language]
-    P --> Q[Generate File Name and Path]
-    Q --> R[Save JSON to output_devocionales/]
-    O -- No --> S[Print Warning: Nothing generated]
-    R --> T[Client End]
-    S --> T
-
-Server Flow Diagram (API_Server.py)
-graph TD
-    A[Server Start] --> B[Load Excluded Verses]
-    B --> C[Endpoint /generate_devotionals (POST)]
-    C --> D{Loop: From start_date to end_date}
-    D --> E[Select main_verse (with hint/random, excluding used)]
-    E --> F{Attempt to Generate master_version with Gemini}
-    F -- Success --> G[Add main_verse to Excluded]
-    G --> H[Add master_devocional to response_data]
-    H --> I{Loop: For other_versions}
-    I --> J{Attempt to Generate other_version with Gemini (same main_verse)}
-    J -- Success --> K[Add other_version_devocional to response_data]
-    J -- Error --> L[Add Error Devotional for other_version]
-    K --> I
-    L --> I
-    I -- End Loop --> D
-    F -- Error (ValueError, HTTPException, etc.) --> M[Create Error Devotional for master_version]
-    M --> N[Create Error Devotional for other_versions]
-    N --> D
-    D -- End Loop --> O[Save Excluded Verses]
-    O --> P[Return ApiResponse (status, message, data)]
-
-📝 Notes and Considerations
-API Key: Make sure your GOOGLE_API_KEY is confidential and not uploaded to public repositories.
-
-Possible Verses: The obtener_todos_los_versiculos_posibles() function in API_Server.py contains a fixed list of New Testament verses. For more robust use, this function should load verses from an external source (e.g., a database, a larger file, etc.).
-
-Gemini Model: Currently uses gemini-2.0-flash-lite. If you want to use another model, you can modify the line model = genai.GenerativeModel('gemini-2.0-flash-lite', ...) in API_Server.py.
-
-Prompt Customization: You can adjust the prompt in generate_devocional_content_gemini() to refine the quality and style of the generated devotionals.
-
-Error Handling: Although retries and error devotionals are implemented, it's always good practice to monitor logs to identify patterns of recurring failures.
-
-Scalability: For large volumes of generation or production deployments, consider adding message queues (e.g., RabbitMQ, Celery) to process requests asynchronously and robustly.
+A GUI window will open, guiding you to select the input JSON files and the folder where the excluded_verses.json will be saved.
