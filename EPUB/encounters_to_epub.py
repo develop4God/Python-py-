@@ -31,6 +31,9 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.request import urlopen
+
+import yaml
 
 from PIL import Image
 try:
@@ -319,7 +322,7 @@ def find_image_file(assets_dir, image_url):
     if not image_url:
         return None
     stem = Path(image_url).stem
-    for ext in ('.avif', '.png', '.jpg', '.jpeg', '.webp'):
+    for ext in ('.png', '.jpg', '.jpeg', '.webp', '.avif'):
         candidate = assets_dir / f'{stem}{ext}'
         if candidate.exists():
             return candidate
@@ -661,15 +664,173 @@ def convert(input_path, assets_dir, output_path, index_path=None):
     return len(chapters), len(image_registry)
 
 
+# ── Interactive menu helpers (sources.yml driven) ────────────────────────────
+
+_SOURCES_FILE = Path(__file__).parent / 'sources.yml'
+
+
+def _load_sources():
+    with open(_SOURCES_FILE, encoding='utf-8') as f:
+        return yaml.safe_load(f)
+
+
+def _fetch_url(url):
+    resp = urlopen(url, timeout=30)
+    return resp.read()
+
+
+def _fetch_json(url):
+    return json.loads(_fetch_url(url).decode('utf-8'))
+
+
+def _prompt_choice(label, options, allow_multi=False):
+    print(f'\n{label}')
+    for i, (key, desc) in enumerate(options, 1):
+        print(f'  {i}) {desc}')
+    if allow_multi:
+        print('  (comma-separated numbers, or "a" for all)')
+    while True:
+        raw = input('> ').strip()
+        if allow_multi and raw.lower() == 'a':
+            return [key for key, _ in options]
+        try:
+            if allow_multi:
+                indices = [int(x.strip()) for x in raw.split(',')]
+                picks = [options[i - 1][0] for i in indices if 1 <= i <= len(options)]
+                if picks:
+                    return picks
+            else:
+                idx = int(raw)
+                if 1 <= idx <= len(options):
+                    return options[idx - 1][0]
+        except (ValueError, IndexError):
+            pass
+        print('  Invalid selection, try again.')
+
+
+def _fetch_index(sources):
+    jr = sources['json_repo']
+    url = f"{jr['base_url']}/{jr['index']}"
+    print(f'  Fetching index from {url} ...')
+    return _fetch_json(url)
+
+
+def _encounter_character(encounter_id):
+    """Strip the version suffix (_001) from an encounter ID to get the character name."""
+    return re.sub(r'_\d{3}$', '', encounter_id)
+
+
+def _fetch_encounter_json(sources, encounter_id, lang, work_dir):
+    jr = sources['json_repo']
+    character = _encounter_character(encounter_id)
+    path = jr['encounter_pattern'].format(lang=lang, character=character)
+    url = f"{jr['base_url']}/{path}"
+    print(f'  Fetching {url} ...')
+    data = _fetch_json(url)
+    local = work_dir / f'{character}_{lang}_001.json'
+    local.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+    return str(local), data
+
+
+def _fetch_encounter_assets(sources, encounter_id, work_dir):
+    ar = sources['assets_repo']
+    assets_path = ar['assets_pattern'].format(encounter_id=encounter_id)
+    assets_dir = work_dir / 'assets' / encounter_id
+    assets_dir.mkdir(parents=True, exist_ok=True)
+
+    api_url = f"https://api.github.com/repos/develop4God/Devocionales-assets/contents/{assets_path}"
+    print(f'  Fetching asset list for {encounter_id} ...')
+    try:
+        listing = _fetch_json(api_url)
+    except Exception as exc:
+        print(f'  ⚠ Could not list assets: {exc}')
+        return str(assets_dir)
+
+    for item in listing:
+        if item.get('type') != 'file':
+            continue
+        name = item['name']
+        if not any(name.endswith(ext) for ext in ('.png', '.jpg', '.jpeg')):
+            continue
+        dl_url = item['download_url']
+        dest = assets_dir / name
+        if dest.exists():
+            continue
+        print(f'    ↓ {name}')
+        dest.write_bytes(_fetch_url(dl_url))
+
+    return str(assets_dir)
+
+
+def interactive():
+    print('═' * 50)
+    print('  Encounter → EPUB  Converter')
+    print('═' * 50)
+
+    sources = _load_sources()
+
+    # 1. Select language
+    lang_options = [(entry['code'], f"{entry['code']}  —  {entry['name']}") for entry in sources['languages']]
+    lang = _prompt_choice('Select language:', lang_options)
+
+    # 2. Fetch index and list encounters for that language
+    index_data = _fetch_index(sources)
+    encounters = []
+    for entry in index_data.get('encounters', []):
+        eid = entry.get('id', '')
+        title = (entry.get('titles') or {}).get(lang) or eid
+        encounters.append((eid, f'{eid}  —  {title}'))
+
+    if not encounters:
+        print(f'No encounters found in index for "{lang}".')
+        sys.exit(1)
+
+    selected = _prompt_choice('Select encounter(s):', encounters, allow_multi=True)
+    if isinstance(selected, str):
+        selected = [selected]
+
+    # 3. Output directory
+    default_out = str(Path(__file__).parent / 'output')
+    out_dir_str = input(f'\nOutput directory [{default_out}]: ').strip() or default_out
+    out_dir = Path(out_dir_str)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix='epub_') as tmp:
+        work_dir = Path(tmp)
+
+        index_local = work_dir / 'index.json'
+        index_local.write_text(json.dumps(index_data, ensure_ascii=False, indent=2))
+
+        print(f'\nConverting {len(selected)} encounter(s)...\n')
+        ok = 0
+        for encounter_id in selected:
+            try:
+                json_path, _ = _fetch_encounter_json(sources, encounter_id, lang, work_dir)
+                assets_dir = _fetch_encounter_assets(sources, encounter_id, work_dir)
+                character = _encounter_character(encounter_id)
+                out_path = out_dir / f'{character}_{lang}_001.epub'
+                n_ch, n_img = convert(json_path, assets_dir, str(out_path), index_path=str(index_local))
+                print(f'  ✅  {out_path.name}  ({n_ch} chapters, {n_img} images)')
+                ok += 1
+            except Exception as exc:
+                print(f'  ❌  {encounter_id}: {exc}')
+
+    print(f'\nDone. {ok}/{len(selected)} EPUB(s) written to {out_dir}')
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
+        interactive()
+    elif len(sys.argv) >= 3:
+        inp = sys.argv[1]
+        assets = sys.argv[2]
+        out = sys.argv[3] if len(sys.argv) >= 4 else str(Path(inp).with_suffix('.epub'))
+        idx = sys.argv[4] if len(sys.argv) >= 5 else None
+        n_chapters, n_images = convert(inp, assets, out, index_path=idx)
+        print(f"✅  {out}  ({n_chapters} chapters, {n_images} images embedded)")
+    else:
         print(__doc__)
         sys.exit(1)
-    inp = sys.argv[1]
-    assets = sys.argv[2]
-    out = sys.argv[3] if len(sys.argv) >= 4 else str(Path(inp).with_suffix('.epub'))
-    idx = sys.argv[4] if len(sys.argv) >= 5 else None
-    n_chapters, n_images = convert(inp, assets, out, index_path=idx)
-    print(f"✅  {out}  ({n_chapters} chapters, {n_images} images embedded)")

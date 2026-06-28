@@ -1,0 +1,36 @@
+# Single Source of Truth for Encounter EPUB conversion.
+# All remote URLs and local path patterns are defined here.
+
+json_repo:
+  base_url: https://raw.githubusercontent.com/develop4God/devocionales-json/refs/heads/main
+  index: encounters/index.json
+  # Encounter files: encounters/<lang>/<character>_<lang>_001.json
+  # <character> is the encounter ID without its _001 version suffix
+  encounter_pattern: "encounters/{lang}/{character}_{lang}_001.json"
+
+assets_repo:
+  base_url: https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main
+  # Asset images live under images/encounters/<encounter_id>/
+  assets_pattern: "images/encounters/{encounter_id}"
+
+languages:
+  - code: en
+    name: English
+  - code: es
+    name: Español
+  - code: pt
+    name: Português
+  - code: fr
+    name: Français
+  - code: de
+    name: Deutsch
+  - code: ja
+    name: 日本語
+  - code: zh
+    name: 中文
+  - code: hi
+    name: हिन्दी
+  - code: ar
+    name: العربية
+  - code: fil
+    name: Filipino
