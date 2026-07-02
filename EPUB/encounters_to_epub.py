@@ -48,60 +48,60 @@ from ebooklib import epub
 UI_STRINGS = {
     'es': {
         'cover_label': 'Un Encuentro Bíblico', 'reading_time': 'min de lectura',
-        'related_refs': 'Referencias Relacionadas', 'your_encounter': 'Tu Encuentro',
-        'prayer_default': 'Oración', 'reflect': 'Reflexiona', 'amen': 'Amén',
+        'related_refs': 'CONEXIONES PROFUNDAS', 'your_encounter': 'Tu Encuentro',
+        'prayer_default': 'ORACIÓN', 'reflect': 'Reflexiona', 'amen': 'Amén',
         'colophon_title': 'Información', 'app_credit': 'Creado por Develop4God.',
         'app_credit_sub': 'Una experiencia narrativa de las Escrituras, parte de la app Devocional.',
         'scripture_heading': 'Sobre el texto bíblico utilizado',
         'welcome_title_line1': 'Ellos lo encontraron.',
         'welcome_title_line2': 'Cambiaron para siempre.',
         'welcome_title_line3': 'El mismo Jesús. Aquí. Ahora.',
-        'welcome_subtitle': 'Historias reales. El Jesús real. Experimenta la Biblia como nunca antes.',
+        'welcome_subtitle': 'Historias reales. El Jesús real.',
     },
     'en': {
         'cover_label': 'A Bible Encounter', 'reading_time': 'min read',
-        'related_refs': 'Related References', 'your_encounter': 'Your Encounter',
-        'prayer_default': 'Prayer', 'reflect': 'Reflect', 'amen': 'Amen',
+        'related_refs': 'DEEPER CONNECTIONS', 'your_encounter': 'Your Encounter',
+        'prayer_default': 'PRAYER', 'reflect': 'Reflect', 'amen': 'Amen',
         'colophon_title': 'About this ebook', 'app_credit': 'Created by Develop4God.',
         'app_credit_sub': 'A narrative Scripture experience, part of the Devocional app.',
         'scripture_heading': 'About the Bible text used',
         'welcome_title_line1': 'They found Him.',
         'welcome_title_line2': 'Changed forever.',
         'welcome_title_line3': 'The same Jesus. Here. Now.',
-        'welcome_subtitle': 'Real stories. The real Jesus. Experience the Bible like never before.',
+        'welcome_subtitle': 'Real stories. The real Jesus.',
     },
     'pt': {
         'cover_label': 'Um Encontro Bíblico', 'reading_time': 'min de leitura',
-        'related_refs': 'Referências Relacionadas', 'your_encounter': 'Seu Encontro',
-        'prayer_default': 'Oração', 'reflect': 'Reflita', 'amen': 'Amém',
+        'related_refs': 'CONEXÕES PROFUNDAS', 'your_encounter': 'Seu Encontro',
+        'prayer_default': 'ORAÇÃO', 'reflect': 'Reflita', 'amen': 'Amém',
         'colophon_title': 'Sobre este ebook', 'app_credit': 'Criado por Develop4God.',
         'app_credit_sub': 'Uma experiência narrativa das Escrituras, parte do app Devocional.',
         'scripture_heading': 'Sobre o texto bíblico utilizado',
-        'welcome_title_line1': 'Eles O encontraram.',
-        'welcome_title_line2': 'Mudaram para sempre.',
+        'welcome_title_line1': 'Eles encontraram.',
+        'welcome_title_line2': 'Foram transformados para sempre.',
         'welcome_title_line3': 'O mesmo Jesus. Aqui. Agora.',
-        'welcome_subtitle': 'Histórias reais. O Jesus real. Experimente a Bíblia como nunca antes.',
+        'welcome_subtitle': 'Histórias reais. O verdadeiro Jesus.',
     },
     'fr': {
         'cover_label': 'Une Rencontre Biblique', 'reading_time': 'min de lecture',
-        'related_refs': 'Références Liées', 'your_encounter': 'Votre Rencontre',
-        'prayer_default': 'Prière', 'reflect': 'Réfléchissez', 'amen': 'Amen',
+        'related_refs': 'CONNEXIONS PROFONDES', 'your_encounter': 'Votre Rencontre',
+        'prayer_default': 'PRIÈRE', 'reflect': 'Réfléchissez', 'amen': 'Amen',
         'colophon_title': 'À propos de cet ebook', 'app_credit': 'Créé par Develop4God.',
         'app_credit_sub': 'Une expérience narrative des Écritures, issue de l\'application Devocional.',
         'scripture_heading': 'À propos du texte biblique utilisé',
-        'welcome_title_line1': 'Ils L\'ont trouvé.',
-        'welcome_title_line2': 'Changés à jamais.',
+        'welcome_title_line1': 'Ils l\'ont trouvé.',
+        'welcome_title_line2': 'Transformés pour toujours.',
         'welcome_title_line3': 'Le même Jésus. Ici. Maintenant.',
-        'welcome_subtitle': 'Des histoires vraies. Le vrai Jésus. Vivez la Bible comme jamais.',
+        'welcome_subtitle': 'Des histoires vraies. Le vrai Jésus.',
     },
     'de': {
         'cover_label': 'Eine biblische Begegnung', 'reading_time': 'Min. Lesezeit',
-        'related_refs': 'Verwandte Stellen', 'your_encounter': 'Deine Begegnung',
-        'welcome_title_line1': 'Sie haben Ihn gefunden.',
+        'related_refs': 'TIEFERE VERBINDUNGEN', 'your_encounter': 'Deine Begegnung',
+        'welcome_title_line1': 'Sie fanden Ihn.',
         'welcome_title_line2': 'Für immer verändert.',
         'welcome_title_line3': 'Derselbe Jesus. Hier. Jetzt.',
-        'welcome_subtitle': 'Wahre Geschichten. Der wahre Jesus. Erlebe die Bibel wie nie zuvor.',
-        'prayer_default': 'Gebet', 'reflect': 'Reflektiere', 'amen': 'Amen',
+        'welcome_subtitle': 'Wahre Geschichten. Der wahre Jesus.',
+        'prayer_default': 'GEBET', 'reflect': 'Reflektiere', 'amen': 'Amen',
         'colophon_title': 'Über dieses E-Book', 'app_credit': 'Erstellt von Develop4God.',
         'app_credit_sub': 'Eine narrative Bibel-Erfahrung, Teil der Devocional-App.',
         'scripture_heading': 'Über den verwendeten Bibeltext',
@@ -257,6 +257,9 @@ p { margin: 0.7em 0; }
     padding-left: 1em; text-align: left; font-style: italic; color: #333; }
 .cover .key-verse .ref { font-weight: bold; font-style: normal; font-size: 0.85em; color: #666; margin-top: 0.4em; }
 .cover .meta-line { font-size: 0.8em; color: #999; margin-top: 2em; }
+.cover .welcome-tagline { margin-top: 1.6em; font-style: italic; color: #777; }
+.cover .welcome-tagline p { margin: 0.3em 0; }
+.cover .welcome-subtitle { font-size: 0.9em; color: #999; }
 
 .card-subtitle { font-size: 0.95em; color: #666; font-style: italic; margin-bottom: 1.2em; }
 .icon-line { font-size: 1.8em; margin-bottom: 0.2em; }
@@ -573,6 +576,10 @@ def build_cover(data, strings, lang, index_entry, assets_dir, book, image_regist
     <p class="ref">— {esc(kv.get('reference', ''))}</p>
   </div>
   <p class="meta-line">{esc(strings['cover_label'])} · {esc(data.get('bible_version', ''))} · {data.get('estimated_reading_minutes', '')} {esc(strings['reading_time'])}</p>
+  <div class="welcome-tagline">
+    <p>{esc(strings['welcome_title_line1'])}<br/>{esc(strings['welcome_title_line2'])}<br/>{esc(strings['welcome_title_line3'])}</p>
+    <p class="welcome-subtitle">{esc(strings['welcome_subtitle'])}</p>
+  </div>
 </div>"""
     return wrap_xhtml(title, body, lang), img_counter
 
@@ -647,7 +654,7 @@ def convert(input_path, assets_dir, output_path, index_path=None):
             continue
         html_str, img_counter = renderer(card, book, assets_dir, image_registry, img_counter, strings, lang)
         if ctype == 'completion':
-            ch_title = strings.get('amen', 'Amén')
+            ch_title = safe_dict(card, 'completion_verse').get('reference') or strings.get('amen', 'Amén')
         else:
             ch_title = card.get('title') or card.get('verse_reference') or ctype
         fname = f"card_{card.get('order', 0):02d}.xhtml"
