@@ -22,3 +22,10 @@ app_repo:
   i18n_dir_api: https://api.github.com/repos/develop4God/devocional_nuevo/contents/i18n
   copyright_utils: "lib/utils/copyright_utils.dart"
 
+bible_versions_repo:
+  # Auto-generated single source of truth for Bible version code <-> display
+  # name per language (e.g. ar: NAV <-> "الترجمة العربية الجديدة"). Used to
+  # resolve devocionales-json's bible_version display names to the codes
+  # copyright_utils.dart keys its notices by.
+  index: https://raw.githubusercontent.com/develop4God/bible_versions/main/index.json
+

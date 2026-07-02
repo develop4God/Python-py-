@@ -66,12 +66,32 @@ def fetch_copyright_map():
     return result
 
 
-def get_copyright_text(copyright_map, language, version):
-    """Replicates CopyrightUtils.getCopyrightText: extracts a version code
-    from a trailing "(CODE)" if present, looks it up under `language`,
-    falling back to that language's 'default', falling back to English."""
-    match = _VERSION_CODE_RE.search(version)
-    version_key = match.group(1) if match else version
 
+def get_copyright_text(copyright_map, language, version, display_name_to_code=None):
+    """Matches `version` (the encounter JSON's bible_version) against the
+    app's copyright map: tries the bare value, then the code extracted from
+    a trailing "(CODE)", then any key whose "Name (CODE)" starts with
+    `version`, then — if `display_name_to_code` (from
+    bible_versions_source.fetch_display_name_to_code) is given — the code
+    for this language's display name, per the bible_versions repo's
+    authoritative code<->name index. Falls back to that language's
+    'default', then to English."""
     lang_map = copyright_map.get(language) or copyright_map['en']
-    return lang_map.get(version_key) or lang_map['default']
+
+    if version in lang_map:
+        return lang_map[version]
+
+    match = _VERSION_CODE_RE.search(version)
+    if match and match.group(1) in lang_map:
+        return lang_map[match.group(1)]
+
+    for key in lang_map:
+        if key.startswith(f'{version} ('):
+            return lang_map[key]
+
+    if display_name_to_code:
+        code = display_name_to_code.get(language, {}).get(version)
+        if code and code in lang_map:
+            return lang_map[code]
+
+    return lang_map['default']

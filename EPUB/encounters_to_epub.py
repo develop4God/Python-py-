@@ -45,6 +45,7 @@ from ebooklib import epub
 
 from epub_strings import build_strings
 from copyright_source import fetch_copyright_map, get_copyright_text
+from bible_versions_source import fetch_display_name_to_code
 from i18n_source import list_available_languages
 
 DEVELOP4GOD_URL = 'www.develop4God.com'
@@ -401,11 +402,11 @@ def build_cover(data, strings, lang, index_entry, assets_dir, book, image_regist
     return wrap_xhtml(title, body, lang), img_counter
 
 
-def build_colophon(data, strings, lang, copyright_map):
+def build_colophon(data, strings, lang, copyright_map, display_name_to_code):
     """Closing page: Develop4God authorship credit + Bible translation notice.
     Placed as the last chapter so it doesn't interrupt the reading experience."""
     bible_version = data.get('bible_version', '')
-    notice = get_copyright_text(copyright_map, lang, bible_version) if bible_version else ''
+    notice = get_copyright_text(copyright_map, lang, bible_version, display_name_to_code) if bible_version else ''
 
     body = f"""<div class="colophon">
 <h1>{esc(strings['colophon_title'])}</h1>
@@ -426,6 +427,7 @@ def convert(input_path, assets_dir, output_path, index_path=None):
     lang = data.get('language', 'en')
     strings = build_strings(lang)
     copyright_map = fetch_copyright_map()
+    display_name_to_code = fetch_display_name_to_code()
     assets_dir = Path(assets_dir)
 
     # Auto-discover index.json sitting next to the encounters/<lang>/ folder
@@ -478,7 +480,7 @@ def convert(input_path, assets_dir, output_path, index_path=None):
         fname = f"card_{card.get('order', 0):02d}.xhtml"
         make_ch(ch_title, fname, html_str)
 
-    make_ch(strings['colophon_title'], 'colophon.xhtml', build_colophon(data, strings, lang, copyright_map))
+    make_ch(strings['colophon_title'], 'colophon.xhtml', build_colophon(data, strings, lang, copyright_map, display_name_to_code))
 
     book.toc = [(epub.Section(title), chapters)]
     book.add_item(epub.EpubNcx())
