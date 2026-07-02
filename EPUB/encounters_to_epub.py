@@ -43,197 +43,11 @@ except ImportError:
 
 from ebooklib import epub
 
-# ── i18n: UI strings shown in the ebook chrome (not the devotional content) ──
+from epub_strings import build_strings
+from copyright_source import fetch_copyright_map, get_copyright_text
+from i18n_source import list_available_languages
 
-UI_STRINGS = {
-    'es': {
-        'cover_label': 'Un Encuentro Bíblico', 'reading_time': 'min de lectura',
-        'related_refs': 'CONEXIONES PROFUNDAS', 'your_encounter': 'Tu Encuentro',
-        'prayer_default': 'ORACIÓN', 'reflect': 'Reflexiona', 'amen': 'Amén',
-        'colophon_title': 'Información', 'app_credit': 'Desarrollado con ❤️ por Develop4God.',
-        'scripture_heading': 'Sobre el texto bíblico utilizado',
-        'get_app': 'Descarga la app',
-        'welcome_title_line1': 'Ellos lo encontraron.',
-        'welcome_title_line2': 'Cambiaron para siempre.',
-        'welcome_title_line3': 'El mismo Jesús. Aquí. Ahora.',
-        'welcome_subtitle': 'Historias reales. El Jesús real.',
-    },
-    'en': {
-        'cover_label': 'A Bible Encounter', 'reading_time': 'min read',
-        'related_refs': 'DEEPER CONNECTIONS', 'your_encounter': 'Your Encounter',
-        'prayer_default': 'PRAYER', 'reflect': 'Reflect', 'amen': 'Amen',
-        'colophon_title': 'About this ebook', 'app_credit': 'Developed with ❤️ by Develop4God.',
-        'scripture_heading': 'About the Bible text used',
-        'get_app': 'Get the app',
-        'welcome_title_line1': 'They found Him.',
-        'welcome_title_line2': 'Changed forever.',
-        'welcome_title_line3': 'The same Jesus. Here. Now.',
-        'welcome_subtitle': 'Real stories. The real Jesus.',
-    },
-    'pt': {
-        'cover_label': 'Um Encontro Bíblico', 'reading_time': 'min de leitura',
-        'related_refs': 'CONEXÕES PROFUNDAS', 'your_encounter': 'Seu Encontro',
-        'prayer_default': 'ORAÇÃO', 'reflect': 'Reflita', 'amen': 'Amém',
-        'colophon_title': 'Sobre este ebook', 'app_credit': 'Desenvolvido com ❤️ por Develop4God.',
-        'scripture_heading': 'Sobre o texto bíblico utilizado',
-        'get_app': 'Baixe o app',
-        'welcome_title_line1': 'Eles encontraram.',
-        'welcome_title_line2': 'Foram transformados para sempre.',
-        'welcome_title_line3': 'O mesmo Jesus. Aqui. Agora.',
-        'welcome_subtitle': 'Histórias reais. O verdadeiro Jesus.',
-    },
-    'fr': {
-        'cover_label': 'Une Rencontre Biblique', 'reading_time': 'min de lecture',
-        'related_refs': 'CONNEXIONS PROFONDES', 'your_encounter': 'Votre Rencontre',
-        'prayer_default': 'PRIÈRE', 'reflect': 'Réfléchissez', 'amen': 'Amen',
-        'colophon_title': 'À propos de cet ebook', 'app_credit': 'Développé avec ❤️ par Develop4God.',
-        'scripture_heading': 'À propos du texte biblique utilisé',
-        'get_app': 'Téléchargez l\'application',
-        'welcome_title_line1': 'Ils l\'ont trouvé.',
-        'welcome_title_line2': 'Transformés pour toujours.',
-        'welcome_title_line3': 'Le même Jésus. Ici. Maintenant.',
-        'welcome_subtitle': 'Des histoires vraies. Le vrai Jésus.',
-    },
-    'de': {
-        'cover_label': 'Eine biblische Begegnung', 'reading_time': 'Min. Lesezeit',
-        'related_refs': 'TIEFERE VERBINDUNGEN', 'your_encounter': 'Deine Begegnung',
-        'welcome_title_line1': 'Sie fanden Ihn.',
-        'welcome_title_line2': 'Für immer verändert.',
-        'welcome_title_line3': 'Derselbe Jesus. Hier. Jetzt.',
-        'welcome_subtitle': 'Wahre Geschichten. Der wahre Jesus.',
-        'prayer_default': 'GEBET', 'reflect': 'Reflektiere', 'amen': 'Amen',
-        'colophon_title': 'Über dieses E-Book', 'app_credit': 'Entwickelt mit ❤️ von Develop4God.',
-        'scripture_heading': 'Über den verwendeten Bibeltext',
-        'get_app': 'App herunterladen',
-    },
-}
-
-DEVELOP4GOD_URL = 'https://www.develop4god.com'
-DEFAULT_UI = UI_STRINGS['en']
-
-
-def ui(language):
-    return UI_STRINGS.get(language, DEFAULT_UI)
-
-
-# ── Bible version copyright/usage notices ─────────────────────────────────────
-# Researched per-translation. "public_domain": True means the underlying
-# translation text itself is out of copyright (age-based), though note that
-# specific *modern* publisher editions/typesetting of even old translations
-# can carry their own edition-level copyright — when in doubt, the safer
-# move is to still print a clear source attribution, which we always do
-# below regardless of public-domain status.
-BIBLE_COPYRIGHT = {
-    'RVR1960': {
-        'public_domain': False,
-        'notice': {
-            'es': 'El texto bíblico ha sido tomado de la versión Reina-Valera © 1960 Sociedades '
-                  'Bíblicas en América Latina; © renovado 1988 Sociedades Bíblicas Unidas. '
-                  'Utilizado con permiso. Reina-Valera 1960® es una marca registrada de '
-                  'Sociedades Bíblicas Unidas.',
-            'en': 'Scripture taken from the Reina-Valera 1960 Spanish translation, '
-                  '© 1960 Sociedades Bíblicas en América Latina; © renewed 1988 Sociedades '
-                  'Bíblicas Unidas. Used with permission. Reina-Valera 1960® is a registered '
-                  'trademark of Sociedades Bíblicas Unidas.',
-        },
-    },
-    'KJV': {
-        'public_domain': True,
-        'notice': {
-            'es': 'El texto de la Versión King James (1611) es de dominio público.',
-            'en': 'Scripture quotations are from the King James Version (1611), which is in '
-                  'the public domain.',
-        },
-    },
-    'ARC': {
-        'public_domain': True,
-        'notice': {
-            'es': 'El texto base de la Almeida Revista e Corrigida (edición de 1898) es de '
-                  'dominio público. Confirme la edición específica utilizada, ya que algunas '
-                  'tipografías/ediciones modernas publicadas por sociedades bíblicas pueden '
-                  'tener derechos propios sobre esa edición particular.',
-            'pt': 'O texto-base da Almeida Revista e Corrigida (edição de 1898) é de domínio '
-                  'público. Confirme a edição específica utilizada, pois algumas tipografias/'
-                  'edições modernas publicadas por sociedades bíblicas podem ter direitos '
-                  'próprios sobre essa edição em particular.',
-            'en': 'The base text of the Almeida Revista e Corrigida (1898 edition) is in the '
-                  'public domain. Confirm the specific edition used, since some modern '
-                  'typesettings/editions published by Bible societies may carry their own '
-                  'rights over that particular edition.',
-        },
-    },
-    'LSG1910': {
-        'public_domain': True,
-        'notice': {
-            'es': 'El texto de la Bible Louis Segond (revisión de 1910) es de dominio público.',
-            'fr': 'Le texte de la Bible Louis Segond (révision de 1910) appartient au domaine public.',
-            'en': 'Scripture quotations are from the Louis Segond Bible (1910 revision), which '
-                  'is in the public domain.',
-        },
-    },
-    'LU17': {
-        'public_domain': True,
-        'notice': {
-            'es': 'El texto de la Biblia de Lutero (revisión de 1912/1917) es de dominio público.',
-            'de': 'Der Text der Lutherbibel (Revision von 1912/1917) ist gemeinfrei.',
-            'en': 'Scripture quotations are from the Luther Bible (1912/1917 revision), which '
-                  'is in the public domain.',
-        },
-    },
-    'SCH2000': {
-        'public_domain': False,
-        'notice': {
-            'es': 'El texto de la Schlachter 2000 © Genfer Bibelgesellschaft / CLV. Utilizado con '
-                  'permiso. Verifique los términos de uso vigentes con el titular de derechos.',
-            'de': 'Schlachter 2000 © Genfer Bibelgesellschaft / CLV. Verwendet mit Genehmigung. '
-                  'Bitte aktuelle Nutzungsbedingungen beim Rechteinhaber prüfen.',
-            'en': 'Schlachter 2000 © Geneva Bible Society / CLV. Used with permission. Verify '
-                  'current usage terms with the rights holder.',
-        },
-    },
-    'NVI': {
-        'public_domain': False,
-        'notice': {
-            'es': 'La Santa Biblia, Nueva Versión Internacional® NVI® © 1999, 2015 por Biblica, '
-                  'Inc.® Utilizado con permiso. Todos los derechos reservados en todo el mundo.',
-            'en': 'Scripture quotations are from La Santa Biblia, Nueva Versión Internacional® '
-                  'NVI® © 1999, 2015 by Biblica, Inc.® Used by permission. All rights reserved '
-                  'worldwide.',
-        },
-    },
-    'NIV': {
-        'public_domain': False,
-        'notice': {
-            'es': 'El texto de La Santa Biblia, Nueva Versión Internacional® NIV® © 1973, 1978, '
-                  '1984, 2011 por Biblica, Inc.® Utilizado con permiso. Todos los derechos '
-                  'reservados en todo el mundo.',
-            'en': 'Scripture quotations taken from The Holy Bible, New International Version® '
-                  'NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. '
-                  'All rights reserved worldwide.',
-        },
-    },
-}
-
-
-def bible_copyright_notice(bible_version, language):
-    """Returns the best-available copyright/usage notice text for this Bible
-    version, preferring the encounter's own language, falling back to English,
-    or a generic caution if the version isn't in our researched table yet."""
-    entry = BIBLE_COPYRIGHT.get(bible_version)
-    if not entry:
-        return {
-            'es': f'Texto bíblico: {bible_version}. Verifique los términos de uso y derechos de '
-                  f'autor de esta traducción con la sociedad bíblica o editorial correspondiente '
-                  f'antes de distribuir este archivo ampliamente.',
-            'en': f'Bible text: {bible_version}. Verify the usage terms and copyright status of '
-                  f'this translation with the relevant Bible society or publisher before '
-                  f'distributing this file widely.',
-        }.get(language, None) or f'Bible text: {bible_version}. Verify copyright status before wide distribution.'
-    notice = entry['notice'].get(language) or entry['notice'].get('en')
-    return notice
-
-
-
+DEVELOP4GOD_URL = 'www.develop4God.com'
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 
@@ -292,7 +106,7 @@ p { margin: 0.7em 0; }
 .colophon h2 { font-size: 1.1em; margin-top: 1.6em; }
 .colophon .app-credit { font-style: italic; color: #555; margin-bottom: 1.6em; }
 .colophon .app-link { font-size: 0.92em; color: #555; margin-bottom: 1.6em; }
-.colophon .notice { background: #f7f7f5; border-left: 3px solid #aaa; padding: 0.8em 1em; margin: 0.8em 0; }
+.colophon .notice { text-align: center; text-transform: lowercase; color: #777; padding: 0.8em 1em; margin: 0.8em 0; }
 .colophon .small-note { font-size: 0.85em; color: #888; margin-top: 1em; }
 """
 
@@ -457,7 +271,7 @@ def render_interactive_moment(card, book, assets_dir, registry, counter, strings
 def render_discovery_activation(card, book, assets_dir, registry, counter, strings, lang):
     img_html, counter = build_image_block(book, assets_dir, card.get('image_url'), registry, counter)
     body = f"""{img_html}
-<h1>{esc(card.get('title', '') or strings['your_encounter'])}</h1>
+<h1>{esc(card.get('title', '') or strings['cover_label'])}</h1>
 <p class="card-subtitle">{esc(card.get('subtitle', ''))}</p>
 """
     questions = card.get('discovery_questions') or []
@@ -471,7 +285,7 @@ def render_discovery_activation(card, book, assets_dir, registry, counter, strin
         paras = ''.join(f'<p>{esc(p)}</p>' for p in prayer.get('content', '').split('\n') if p.strip())
         body += f'<div class="prayer"><p class="prayer-title">{esc(title)}</p>{paras}</div>\n'
 
-    return wrap_xhtml(card.get('title', '') or strings['your_encounter'], body, lang), counter
+    return wrap_xhtml(card.get('title', '') or strings['cover_label'], body, lang), counter
 
 
 def render_completion(card, book, assets_dir, registry, counter, strings, lang):
@@ -578,7 +392,7 @@ def build_cover(data, strings, lang, index_entry, assets_dir, book, image_regist
     <p>«{esc(kv.get('text', ''))}»</p>
     <p class="ref">— {esc(kv.get('reference', ''))}</p>
   </div>
-  <p class="meta-line">{esc(strings['cover_label'])} · {esc(data.get('bible_version', ''))} · {data.get('estimated_reading_minutes', '')} {esc(strings['reading_time'])}</p>
+  <p class="meta-line">{esc(strings['cover_label'])} · {esc(data.get('bible_version', ''))} · ⏱ {data.get('estimated_reading_minutes', '')}</p>
   <div class="welcome-tagline">
     <p>{esc(strings['welcome_title_line1'])}<br/>{esc(strings['welcome_title_line2'])}<br/>{esc(strings['welcome_title_line3'])}</p>
     <p class="welcome-subtitle">{esc(strings['welcome_subtitle'])}</p>
@@ -587,17 +401,16 @@ def build_cover(data, strings, lang, index_entry, assets_dir, book, image_regist
     return wrap_xhtml(title, body, lang), img_counter
 
 
-def build_colophon(data, strings, lang):
+def build_colophon(data, strings, lang, copyright_map):
     """Closing page: Develop4God authorship credit + Bible translation notice.
     Placed as the last chapter so it doesn't interrupt the reading experience."""
     bible_version = data.get('bible_version', '')
-    notice = bible_copyright_notice(bible_version, lang) if bible_version else ''
+    notice = get_copyright_text(copyright_map, lang, bible_version) if bible_version else ''
 
     body = f"""<div class="colophon">
 <h1>{esc(strings['colophon_title'])}</h1>
 <p class="app-credit">{esc(strings['app_credit'])}</p>
-<p class="app-link"><a href="{esc(DEVELOP4GOD_URL)}">{esc(strings['get_app'])}</a>: {esc(DEVELOP4GOD_URL)}</p>
-<h2>{esc(strings['scripture_heading'])}</h2>
+<p class="app-link">{esc(DEVELOP4GOD_URL)}</p>
 <div class="notice"><p>{esc(notice)}</p></div>
 <p class="small-note">{esc(bible_version)}</p>
 </div>"""
@@ -611,7 +424,8 @@ def convert(input_path, assets_dir, output_path, index_path=None):
         data = json.load(f)
 
     lang = data.get('language', 'en')
-    strings = ui(lang)
+    strings = build_strings(lang)
+    copyright_map = fetch_copyright_map()
     assets_dir = Path(assets_dir)
 
     # Auto-discover index.json sitting next to the encounters/<lang>/ folder
@@ -658,13 +472,13 @@ def convert(input_path, assets_dir, output_path, index_path=None):
             continue
         html_str, img_counter = renderer(card, book, assets_dir, image_registry, img_counter, strings, lang)
         if ctype == 'completion':
-            ch_title = safe_dict(card, 'completion_verse').get('reference') or strings.get('amen', 'Amén')
+            ch_title = safe_dict(card, 'completion_verse').get('reference') or ctype
         else:
             ch_title = card.get('title') or card.get('verse_reference') or ctype
         fname = f"card_{card.get('order', 0):02d}.xhtml"
         make_ch(ch_title, fname, html_str)
 
-    make_ch(strings['colophon_title'], 'colophon.xhtml', build_colophon(data, strings, lang))
+    make_ch(strings['colophon_title'], 'colophon.xhtml', build_colophon(data, strings, lang, copyright_map))
 
     book.toc = [(epub.Section(title), chapters)]
     book.add_item(epub.EpubNcx())
@@ -780,8 +594,9 @@ def interactive():
 
     sources = _load_sources()
 
-    # 1. Select language
-    lang_options = [(entry['code'], f"{entry['code']}  —  {entry['name']}") for entry in sources['languages']]
+    # 1. Select language (available languages = whatever i18n/ files the app repo has)
+    lang_codes = list_available_languages()
+    lang_options = [(code, code) for code in lang_codes]
     lang = _prompt_choice('Select language:', lang_options)
 
     # 2. Fetch index and list encounters for that language

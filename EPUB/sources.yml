@@ -13,24 +13,12 @@ assets_repo:
   # Asset images live under images/encounters/<encounter_id>/
   assets_pattern: "images/encounters/{encounter_id}"
 
-languages:
-  - code: en
-    name: English
-  - code: es
-    name: Español
-  - code: pt
-    name: Português
-  - code: fr
-    name: Français
-  - code: de
-    name: Deutsch
-  - code: ja
-    name: 日本語
-  - code: zh
-    name: 中文
-  - code: hi
-    name: हिन्दी
-  - code: ar
-    name: العربية
-  - code: fil
-    name: Filipino
+app_repo:
+  # Source of truth for EPUB chrome text (UI_STRINGS) and Bible-copyright
+  # notices, reused from the devocional_nuevo Flutter app instead of
+  # duplicating translated strings in this converter.
+  base_url: https://raw.githubusercontent.com/develop4God/devocional_nuevo/main
+  i18n_pattern: "i18n/{lang}.json"
+  i18n_dir_api: https://api.github.com/repos/develop4God/devocional_nuevo/contents/i18n
+  copyright_utils: "lib/utils/copyright_utils.dart"
+
