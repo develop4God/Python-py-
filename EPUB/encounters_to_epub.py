@@ -50,9 +50,9 @@ UI_STRINGS = {
         'cover_label': 'Un Encuentro Bíblico', 'reading_time': 'min de lectura',
         'related_refs': 'CONEXIONES PROFUNDAS', 'your_encounter': 'Tu Encuentro',
         'prayer_default': 'ORACIÓN', 'reflect': 'Reflexiona', 'amen': 'Amén',
-        'colophon_title': 'Información', 'app_credit': 'Creado por Develop4God.',
-        'app_credit_sub': 'Una experiencia narrativa de las Escrituras, parte de la app Devocional.',
+        'colophon_title': 'Información', 'app_credit': 'Desarrollado con ❤️ por Develop4God.',
         'scripture_heading': 'Sobre el texto bíblico utilizado',
+        'get_app': 'Descarga la app',
         'welcome_title_line1': 'Ellos lo encontraron.',
         'welcome_title_line2': 'Cambiaron para siempre.',
         'welcome_title_line3': 'El mismo Jesús. Aquí. Ahora.',
@@ -62,9 +62,9 @@ UI_STRINGS = {
         'cover_label': 'A Bible Encounter', 'reading_time': 'min read',
         'related_refs': 'DEEPER CONNECTIONS', 'your_encounter': 'Your Encounter',
         'prayer_default': 'PRAYER', 'reflect': 'Reflect', 'amen': 'Amen',
-        'colophon_title': 'About this ebook', 'app_credit': 'Created by Develop4God.',
-        'app_credit_sub': 'A narrative Scripture experience, part of the Devocional app.',
+        'colophon_title': 'About this ebook', 'app_credit': 'Developed with ❤️ by Develop4God.',
         'scripture_heading': 'About the Bible text used',
+        'get_app': 'Get the app',
         'welcome_title_line1': 'They found Him.',
         'welcome_title_line2': 'Changed forever.',
         'welcome_title_line3': 'The same Jesus. Here. Now.',
@@ -74,9 +74,9 @@ UI_STRINGS = {
         'cover_label': 'Um Encontro Bíblico', 'reading_time': 'min de leitura',
         'related_refs': 'CONEXÕES PROFUNDAS', 'your_encounter': 'Seu Encontro',
         'prayer_default': 'ORAÇÃO', 'reflect': 'Reflita', 'amen': 'Amém',
-        'colophon_title': 'Sobre este ebook', 'app_credit': 'Criado por Develop4God.',
-        'app_credit_sub': 'Uma experiência narrativa das Escrituras, parte do app Devocional.',
+        'colophon_title': 'Sobre este ebook', 'app_credit': 'Desenvolvido com ❤️ por Develop4God.',
         'scripture_heading': 'Sobre o texto bíblico utilizado',
+        'get_app': 'Baixe o app',
         'welcome_title_line1': 'Eles encontraram.',
         'welcome_title_line2': 'Foram transformados para sempre.',
         'welcome_title_line3': 'O mesmo Jesus. Aqui. Agora.',
@@ -86,9 +86,9 @@ UI_STRINGS = {
         'cover_label': 'Une Rencontre Biblique', 'reading_time': 'min de lecture',
         'related_refs': 'CONNEXIONS PROFONDES', 'your_encounter': 'Votre Rencontre',
         'prayer_default': 'PRIÈRE', 'reflect': 'Réfléchissez', 'amen': 'Amen',
-        'colophon_title': 'À propos de cet ebook', 'app_credit': 'Créé par Develop4God.',
-        'app_credit_sub': 'Une expérience narrative des Écritures, issue de l\'application Devocional.',
+        'colophon_title': 'À propos de cet ebook', 'app_credit': 'Développé avec ❤️ par Develop4God.',
         'scripture_heading': 'À propos du texte biblique utilisé',
+        'get_app': 'Téléchargez l\'application',
         'welcome_title_line1': 'Ils l\'ont trouvé.',
         'welcome_title_line2': 'Transformés pour toujours.',
         'welcome_title_line3': 'Le même Jésus. Ici. Maintenant.',
@@ -102,11 +102,13 @@ UI_STRINGS = {
         'welcome_title_line3': 'Derselbe Jesus. Hier. Jetzt.',
         'welcome_subtitle': 'Wahre Geschichten. Der wahre Jesus.',
         'prayer_default': 'GEBET', 'reflect': 'Reflektiere', 'amen': 'Amen',
-        'colophon_title': 'Über dieses E-Book', 'app_credit': 'Erstellt von Develop4God.',
-        'app_credit_sub': 'Eine narrative Bibel-Erfahrung, Teil der Devocional-App.',
+        'colophon_title': 'Über dieses E-Book', 'app_credit': 'Entwickelt mit ❤️ von Develop4God.',
         'scripture_heading': 'Über den verwendeten Bibeltext',
+        'get_app': 'App herunterladen',
     },
 }
+
+DEVELOP4GOD_URL = 'https://www.develop4god.com'
 DEFAULT_UI = UI_STRINGS['en']
 
 
@@ -289,6 +291,7 @@ p { margin: 0.7em 0; }
 .colophon { font-size: 0.92em; color: #444; }
 .colophon h2 { font-size: 1.1em; margin-top: 1.6em; }
 .colophon .app-credit { font-style: italic; color: #555; margin-bottom: 1.6em; }
+.colophon .app-link { font-size: 0.92em; color: #555; margin-bottom: 1.6em; }
 .colophon .notice { background: #f7f7f5; border-left: 3px solid #aaa; padding: 0.8em 1em; margin: 0.8em 0; }
 .colophon .small-note { font-size: 0.85em; color: #888; margin-top: 1em; }
 """
@@ -592,7 +595,8 @@ def build_colophon(data, strings, lang):
 
     body = f"""<div class="colophon">
 <h1>{esc(strings['colophon_title'])}</h1>
-<p class="app-credit">{esc(strings['app_credit'])}<br/>{esc(strings['app_credit_sub'])}</p>
+<p class="app-credit">{esc(strings['app_credit'])}</p>
+<p class="app-link"><a href="{esc(DEVELOP4GOD_URL)}">{esc(strings['get_app'])}</a>: {esc(DEVELOP4GOD_URL)}</p>
 <h2>{esc(strings['scripture_heading'])}</h2>
 <div class="notice"><p>{esc(notice)}</p></div>
 <p class="small-note">{esc(bible_version)}</p>
